@@ -10,5 +10,6 @@ func Register(r *gin.Engine) {
 	r.Static("/static", "./web/static")
 	r.LoadHTMLGlob("web/templates/*")
 
+	r.GET("/healthz", handlers.Healthz)
 	r.GET("/", handlers.Index)
 }
