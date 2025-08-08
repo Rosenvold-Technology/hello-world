@@ -1,0 +1,3 @@
+# BDD test stack
+behave==1.3.0
+requests==2.32.4
