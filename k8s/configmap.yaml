@@ -1,0 +1,8 @@
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hello-website-config
+data:
+  ENVIRONMENT: "production"
+  GIN_MODE: "release"
