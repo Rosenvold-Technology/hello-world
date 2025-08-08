@@ -90,9 +90,9 @@ jobs:
 
       - name: 📤  Push image to GHCR
         if: |
-          github.event_name == 'push' &&         # never run on PRs
-          github.ref == 'refs/heads/main' &&     # only on main branch
-          success()                              # only if all prior steps are green
+          github.event_name == 'push' &&        
+          github.ref == 'refs/heads/main' &&     
+          success()                              
         run: |
           IMAGE=ghcr.io/${{ steps.img.outputs.repo }}:ci-${{ github.sha }}
 
