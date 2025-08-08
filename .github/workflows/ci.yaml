@@ -12,7 +12,7 @@ permissions:
 
 env:
   IMAGE_NAME: ${{ github.repository }}          # ghcr.io/<org>/<repo>
-  GO_VERSION: stable
+  GO_VERSION: '1.24.6'
   PY_VERSION: '3.12'
 
 jobs:
