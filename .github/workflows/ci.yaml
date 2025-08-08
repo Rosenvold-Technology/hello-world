@@ -46,16 +46,22 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: 📌 Derive lowercase image name
+        id: img
+        run: echo "repo=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+
+      # ─── Build ───
       - name: 🐳  Build web image
         run: |
           docker build \
             --build-arg COMMIT_SHA=${{ github.sha }} \
-            -t ghcr.io/${{ env.IMAGE_NAME }}:ci-${{ github.sha }} .
+            -t ghcr.io/${{ steps.img.outputs.repo }}:ci-${{ github.sha }} .
 
+      # ─── Run container ───
       - name: 🚀  Start preview container
         run: |
           docker run -d --name hello-site -p 8080:8080 \
-            ghcr.io/${{ env.IMAGE_NAME }}:ci-${{ github.sha }}
+            ghcr.io/${{ steps.img.outputs.repo }}:ci-${{ github.sha }}
 
       - name: ⏳  Wait for /healthz
         run: |
