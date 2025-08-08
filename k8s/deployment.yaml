@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: hello
-        image: ghcr.io/rosenvold-technology/hello-world:latest
+        image: ghcr.io/rosenvold-technology/hello-world
         imagePullPolicy: IfNotPresent
         env:
         - name: PORT
