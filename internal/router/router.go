@@ -1,10 +1,9 @@
-
 package router
 
 import (
 	"github.com/gin-gonic/gin"
 
-	"hello-website/internal/handlers"
+	"github.com/rosenvold-technologies/hello-world/internal/handlers"
 )
 
 func Register(r *gin.Engine) {

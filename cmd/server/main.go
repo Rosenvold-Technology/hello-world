@@ -1,4 +1,3 @@
-
 package main
 
 import (
@@ -19,10 +18,9 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 
-	"hello-website/internal/config"
-	"hello-website/internal/handlers"
-	"hello-website/internal/middleware"
-	"hello-website/internal/router"
+	"github.com/rosenvold-technologies/hello-world/internal/config"
+	"github.com/rosenvold-technologies/hello-world/internal/middleware"
+	"github.com/rosenvold-technologies/hello-world/internal/router"
 )
 
 func initTracer() func() {
