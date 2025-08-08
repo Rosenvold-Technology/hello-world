@@ -1,15 +1,31 @@
 package router
 
 import (
-	"github.com/gin-gonic/gin"
+	"net/http"
 
-	"github.com/rosenvold-technologies/hello-world/internal/handlers"
+	"github.com/gin-gonic/gin"
 )
 
-func Register(r *gin.Engine) {
-	r.Static("/static", "./web/static")
-	r.LoadHTMLGlob("web/templates/*")
+func New() *gin.Engine {
+	r := gin.New()
 
-	r.GET("/healthz", handlers.Healthz)
-	r.GET("/", handlers.Index)
+	// ----- middleware you already had -----
+	r.Use(gin.Logger(), gin.Recovery())
+
+	// ----- static files & templates -----
+	r.Static("/static", "./web/static")    // css/js
+	r.LoadHTMLGlob("web/templates/*.tmpl") // html templates
+
+	// ----- routes -----
+	r.GET("/healthz", func(c *gin.Context) { // health probe for CI / K8s
+		c.String(http.StatusOK, "ok")
+	})
+
+	r.GET("/", func(c *gin.Context) { // landing page
+		c.HTML(http.StatusOK, "index.tmpl", gin.H{
+			"Title": "Hello, Kubernetes!",
+		})
+	})
+
+	return r
 }

@@ -23,58 +23,76 @@ import (
 	"github.com/rosenvold-technologies/hello-world/internal/router"
 )
 
+// initTracer wires OpenTelemetry to a simple stdout exporter.
+// The returned shutdown func flushes everything on exit.
 func initTracer() func() {
 	exp, _ := stdouttrace.New(stdouttrace.WithPrettyPrint())
+
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(exp),
 		sdktrace.WithResource(resource.NewWithAttributes(
+			// Service name:
 			"hello.website",
+			// Extra resource attributes:
 			attribute.String("env", os.Getenv("ENVIRONMENT")),
 		)),
 	)
+
 	otel.SetTracerProvider(tp)
 	return func() { _ = tp.Shutdown(context.Background()) }
 }
 
 func main() {
-	cfg := config.Load()
+	// ─────────────────── App config ───────────────────
+	cfg := config.Load() // loads PORT, GIN_MODE, etc.
+
+	// ─────────────────── Tracing ──────────────────────
 	shutdown := initTracer()
 	defer shutdown()
 
+	// ─────────────────── Gin bootstrap ────────────────
 	gin.SetMode(cfg.GinMode)
-	r := gin.New()
-	r.Use(gin.Recovery(), middleware.Logger())
 
-	router.Register(r)
+	// router.New() builds the engine, registers routes
+	// (/, /healthz, static, templates), and adds Gin’s
+	// own logger+recovery middleware.
+	r := router.New()
 
-	// metrics endpoint
+	// Your structured-log middleware (adds request-ID, etc.)
+	r.Use(middleware.Logger())
+
+	// Expose Prometheus metrics
 	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
+	// ─────────────────── HTTP server ──────────────────
 	srv := &http.Server{
 		Addr:           fmt.Sprintf(":%d", cfg.Port),
 		Handler:        r,
 		ReadTimeout:    5 * time.Second,
 		WriteTimeout:   10 * time.Second,
-		MaxHeaderBytes: 1 << 20,
+		MaxHeaderBytes: 1 << 20, // 1 MiB
 	}
 
+	// Start in a goroutine so we can wait for shutdown signals
 	go func() {
 		log.Printf("🚀 Starting server on port %d", cfg.Port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("listen: %s\n", err)
+			log.Fatalf("listen error: %v", err)
 		}
 	}()
 
+	// ─────────────────── Graceful shutdown ────────────
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	log.Println("Shutdown Server ...")
+	log.Println("💡 Shutdown signal received")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatal("Server Shutdown:", err)
+		log.Fatalf("graceful shutdown failed: %v", err)
 	}
 
-	log.Println("Server exiting")
+	log.Println("✅ Server exited cleanly")
 }
