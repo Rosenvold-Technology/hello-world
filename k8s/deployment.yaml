@@ -20,8 +20,8 @@ spec:
     spec:
       containers:
       - name: hello
-        image: ghcr.io/rosenvold-technology/hello-world
-        imagePullPolicy: IfNotPresent
+        image: ghcr.io/rosenvold-technology/hello-world:latest
+        imagePullPolicy: Always
         env:
         - name: PORT
           value: "8080"
